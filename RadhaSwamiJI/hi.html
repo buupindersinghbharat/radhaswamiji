@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Image Slideshow</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .slideshow-container {
+            position: relative;
+            width: 100%;
+            height: 70vh;
+            max-height: 600px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+            background: #000;
+        }
+
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1.2s cubic-bezier(0.65, 0, 0.35, 1);
+            display: flex;
+            align-items: flex-end;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .slide.active {
+            opacity: 1;
+            z-index: 1;
+        }
+
+        .slide-content {
+            width: 100%;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            padding: 30px 40px;
+            color: white;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: transform 0.8s ease, opacity 0.8s ease;
+        }
+
+        .slide.active .slide-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .slide-content h2 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .slide-content p {
+            font-size: 1.1rem;
+            max-width: 600px;
+            opacity: 0.9;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: #ff6b6b;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 2px solid #ff6b6b;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background: transparent;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255,107,107,0.4);
+        }
+
+        .navigation {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .nav-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-dot.active {
+            background: #ff6b6b;
+            transform: scale(1.3);
+        }
+
+        .prev, .next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.5);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .prev {
+            left: 30px;
+        }
+
+        .next {
+            right: 30px;
+        }
+
+        .prev:hover, .next:hover {
+            background: rgba(255,107,107,0.8);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .auto-play {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .auto-play:hover {
+            background: rgba(255,107,107,0.8);
+        }
+
+        .progress-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 5px;
+            background: #ff6b6b;
+            z-index: 10;
+            width: 100%;
+            transform-origin: left;
+            transform: scaleX(0);
+        }
+
+        .slide-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 30px;
+            z-index: 10;
+            font-size: 0.9rem;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        @media (max-width: 768px) {
+            .slideshow-container {
+                height: 60vh;
+            }
+            
+            .slide-content {
+                padding: 20px;
+            }
+            
+            .slide-content h2 {
+                font-size: 1.8rem;
+            }
+            
+            .prev, .next {
+                width: 45px;
+                height: 45px;
+                font-size: 1.2rem;
+            }
+            
+            .header h1 {
+                font-size: 2.2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .slideshow-container {
+                height: 50vh;
+            }
+            
+            .slide-content h2 {
+                font-size: 1.5rem;
+            }
+            
+            .slide-content p {
+                font-size: 0.9rem;
+            }
+            
+            .btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Modern Image Slideshow</h1>
+            <p>Beautiful full-screen slideshow with smooth transitions and modern design</p>
+        </div>
+        
+        <div class="slideshow-container">
+            <div class="progress-bar"></div>
+            
+            <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1350&q=80')">
+                <div class="slide-info">1 / 5</div>
+                <div class="slide-content">
+                    <h2>Mountain Adventures</h2>
+                    <p>Explore breathtaking mountain landscapes and experience the thrill of adventure in nature's playground.</p>
+                    <a href="#" class="btn">Discover More</a>
+                </div>
+            </div>
+            
+            <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1350&q=80')">
+                <div class="slide-info">2 / 5</div>
+                <div class="slide-content">
+                    <h2>Ocean Serenity</h2>
+                    <p>Discover the calming power of the ocean and find your perfect escape by the sea.</p>
+                    <a href="#" class="btn">Explore Beaches</a>
+                </div>
+            </div>
+            
+            <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1469474968028-56623f02e42e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1350&q=80')">
+                <div class="slide-info">3 / 5</div>
+                <div class="slide-content">
+                    <h2>Wilderness Exploration</h2>
+                    <p>Immerse yourself in untouched wilderness and connect with the natural world.</p>
+                    <a href="#" class="btn">Plan Your Trip</a>
+                </div>
+            </div>
+            
+            <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1501785888041-af3ef285b470?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1350&q=80')">
+                <div class="slide-info">4 / 5</div>
+                <div class="slide-content">
+                    <h2>Lakeside Retreats</h2>
+                    <p>Find peace and tranquility by the calm waters of pristine mountain lakes.</p>
+                    <a href="#" class="btn">View Retreats</a>
+                </div>
+            </div>
+            
+            <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1433086966358-54859d0ed716?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1350&q=80')">
+                <div class="slide-info">5 / 5</div>
+                <div class="slide-content">
+                    <h2>Forest Pathways</h2>
+                    <p>Wander through ancient forests and discover hidden trails that lead to wonder.</p>
+                    <a href="#" class="btn">Hiking Trails</a>
+                </div>
+            </div>
+            
+            <div class="prev">
+                <i class="fas fa-chevron-left"></i>
+            </div>
+            
+            <div class="next">
+                <i class="fas fa-chevron-right"></i>
+            </div>
+            
+            <div class="auto-play">
+                <i class="fas fa-pause"></i> Auto Play
+            </div>
+            
+            <div class="navigation">
+                <div class="nav-dot active"></div>
+                <div class="nav-dot"></div>
+                <div class="nav-dot"></div>
+                <div class="nav-dot"></div>
+                <div class="nav-dot"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const slides = document.querySelectorAll('.slide');
+            const dots = document.querySelectorAll('.nav-dot');
+            const prevBtn = document.querySelector('.prev');
+            const nextBtn = document.querySelector('.next');
+            const autoPlayBtn = document.querySelector('.auto-play');
+            const progressBar = document.querySelector('.progress-bar');
+            
+            let slideIndex = 0;
+            let autoPlay = true;
+            let slideInterval;
+            let progressInterval;
+            
+            // Initialize slideshow
+            showSlide(slideIndex);
+            startAutoPlay();
+            
+            // Next slide function
+            function nextSlide() {
+                showSlide(slideIndex + 1);
+                resetAutoPlay();
+            }
+            
+            // Previous slide function
+            function prevSlide() {
+                showSlide(slideIndex - 1);
+                resetAutoPlay();
+            }
+            
+            // Show specific slide
+            function showSlide(index) {
+                // Handle index boundaries
+                if (index >= slides.length) {
+                    index = 0;
+                } else if (index < 0) {
+                    index = slides.length - 1;
+                }
+                
+                // Update slides
+                slides.forEach(slide => slide.classList.remove('active'));
+                slides[index].classList.add('active');
+                
+                // Update dots
+                dots.forEach(dot => dot.classList.remove('active'));
+                dots[index].classList.add('active');
+                
+                // Update slide index
+                slideIndex = index;
+                
+                // Reset progress bar
+                resetProgressBar();
+            }
+            
+            // Start auto play
+            function startAutoPlay() {
+                if (autoPlay) {
+                    slideInterval = setInterval(nextSlide, 5000);
+                    startProgressBar();
+                }
+            }
+            
+            // Reset auto play timer
+            function resetAutoPlay() {
+                clearInterval(slideInterval);
+                clearInterval(progressInterval);
+                if (autoPlay) {
+                    startAutoPlay();
+                }
+            }
+            
+            // Toggle auto play
+            function toggleAutoPlay() {
+                autoPlay = !autoPlay;
+                const icon = autoPlayBtn.querySelector('i');
+                
+                if (autoPlay) {
+                    icon.classList.remove('fa-play');
+                    icon.classList.add('fa-pause');
+                    startAutoPlay();
+                } else {
+                    icon.classList.remove('fa-pause');
+                    icon.classList.add('fa-play');
+                    clearInterval(slideInterval);
+                    clearInterval(progressInterval);
+                }
+            }
+            
+            // Progress bar animation
+            function startProgressBar() {
+                let width = 0;
+                progressBar.style.transform = 'scaleX(0)';
+                
+                clearInterval(progressInterval);
+                progressInterval = setInterval(() => {
+                    if (width >= 100) {
+                        width = 0;
+                    } else {
+                        width += 0.5;
+                        progressBar.style.transform = `scaleX(${width / 100})`;
+                    }
+                }, 25);
+            }
+            
+            function resetProgressBar() {
+                progressBar.style.transform = 'scaleX(0)';
+                if (autoPlay) {
+                    startProgressBar();
+                }
+            }
+            
+            // Event listeners
+            prevBtn.addEventListener('click', prevSlide);
+            nextBtn.addEventListener('click', nextSlide);
+            autoPlayBtn.addEventListener('click', toggleAutoPlay);
+            
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', () => {
+                    showSlide(index);
+                    resetAutoPlay();
+                });
+            });
+            
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') {
+                    prevSlide();
+                } else if (e.key === 'ArrowRight') {
+                    nextSlide();
+                } else if (e.key === ' ') {
+                    toggleAutoPlay();
+                }
+            });
+            
+            // Pause on hover
+            const slideshow = document.querySelector('.slideshow-container');
+            slideshow.addEventListener('mouseenter', () => {
+                if (autoPlay) {
+                    clearInterval(slideInterval);
+                    clearInterval(progressInterval);
+                }
+            });
+            
+            slideshow.addEventListener('mouseleave', () => {
+                if (autoPlay) {
+                    startAutoPlay();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
